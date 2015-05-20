@@ -1,0 +1,11 @@
+target/
+
+*.classpath
+*.classpath
+*.project
+
+*.settings/
+*.metadata/
+*.pydevproject
+
+
