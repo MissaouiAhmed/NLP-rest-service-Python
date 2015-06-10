@@ -35,7 +35,7 @@ def construct_model(copusPath, modelPath):
                    i.split('/')[0]) for i in mr.fileids()]
     word_features = FreqDist(chain(*[i for i, j in documents]))
     word_features = list(word_features.keys())
-    numtrain = int(len(documents) * 90 / 100)
+    numtrain = int(len(documents) * 100 / 100)
     train_set = [({i:(i in tokens) for i in word_features}, tag) for tokens, tag in documents[:numtrain]]
     """test_set = [({i:(i in tokens) for i in word_features}, tag) for tokens, tag  in documents[numtrain:]]"""
     classifier = nbc.train(train_set)
@@ -43,9 +43,14 @@ def construct_model(copusPath, modelPath):
 
 
 def classify(words, modelPath):
+    category=""
     feats = dict([(word, True) for word in words])
     classifier = load_classifier(modelPath)
-    return classifier.classify(feats)
+    classifier.classify(feats)
+    dist = classifier.prob_classify(feats)
+    if dist.prob(dist.max())>0.3:
+        category=dist.max()
+    return category
 
 
 
