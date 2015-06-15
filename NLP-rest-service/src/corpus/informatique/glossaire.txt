@@ -2,12 +2,28 @@ Responsable d'équipe de projet
 production informatique
 
 Web, PHP , JAVA, JEE 
+php, java , jee
 
 informaticien
 informaticienne
 site web
 
-dévellopeur JAV
+dévellopeur JAVA
 concepteur
 conception logicielle
 deploiement
+
+JAVA, Python
+Web: HTML5, XML, CSS 3, JavaScript, JQuery, Ajax, XPath, NODE.js, EXPRESS.js, webRTC
+JEE Frameworks: : Struts 2 , Hibernate 4, JSP, Servlet 3.0, Liferay , EJB 3.0, Swing, JSF ,JPA
+Frameworks Big data: : Apache Hadoop YARN (Map/Reduce), Apache Pig, Hadoop HDFS, APACHE HBASE, APACHE SPARK, APACHE HIVE.
+NoSQL Databases : Mongo DB, Apache Cassandra
+SEMANTIC Web & Linked Data : RDF (XML/RDF, N3 RDF/JSON), OWL, RDFS, RDFA, APACHE JENA
+Information retrieval Frameworks: Apache Lucene Solr.
+Web-Services: SOAP, WSDL, Apache Axis, apache CXF, JAX-RS, JAX-WS, JAXB, SoapUI, BPEL, Mule.
+Cloud : OpenStack Swift , AMAZON BEANSTALK
+Design: UML2.
+SAP: Abap, Netweaver, Sap Hana.
+GIT, JIRA, SVN, Apache Ant, Maven, Jenkins, Sonar .
+Machine Learning, Data Mining ,
+Natural Language Processing

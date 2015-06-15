@@ -13,7 +13,7 @@ from nltk.corpus import CategorizedPlaintextCorpusReader
 from nltk.tag.stanford import POSTagger
 import re
 from nltk.stem import SnowballStemmer
-
+from nltk.classify.util import accuracy
 
 def save_classifier(classifier, modelPath):
     f = open(modelPath + '//classifier.pickle', 'wb')
@@ -39,6 +39,17 @@ def construct_model(copusPath, modelPath):
     train_set = [({i:(i in tokens) for i in word_features}, tag) for tokens, tag in documents[:numtrain]]
     """test_set = [({i:(i in tokens) for i in word_features}, tag) for tokens, tag  in documents[numtrain:]]"""
     classifier = nbc.train(train_set)
+    
+    mrtest = CategorizedPlaintextCorpusReader(os.path.abspath("corpus_test"), r'(?!\.).*\.txt', cat_pattern=r'*/.*', encoding='iso-8859-1')
+    documentsTest = [([w for w in mrtest.words(i) if w.lower() not in stop and w.lower() 
+                   not in string.punctuation],
+                   i.split('/')[0]) for i in mrtest.fileids()]
+    word_features_test = FreqDist(chain(*[i for i, j in documentsTest]))
+    word_features_test = list(word_features_test.keys())
+    numtrain_test = int(len(documentsTest) * 100 / 100)
+    test_set = [({i:(i in tokens) for i in word_features_test}, tag) for tokens, tag  in documentsTest[:numtrain_test]]
+    
+    print("Accuracy=" + accuracy(classifier, test_set))
     save_classifier(classifier, modelPath)
 
 
@@ -48,7 +59,9 @@ def classify(words, modelPath):
     classifier = load_classifier(modelPath)
     classifier.classify(feats)
     dist = classifier.prob_classify(feats)
-    if dist.prob(dist.max())>0.3:
+    for label in dist.samples():
+        print("%s: %f" % (label, dist.prob(label)))
+    if dist.prob(dist.max())>0.5:
         category=dist.max()
     return category
 
@@ -68,7 +81,8 @@ def trainModel():
 def getCategorie():
     if not request.json or not 'text' in request.json:
         abort(400)
-    modelPath = os.path.abspath("model")  
+    modelPath = os.path.abspath("model")
+    print(request.json['text'])  
     return jsonify({'categorie': classify(request.json['text'].split(),modelPath)}), 200
 
 
