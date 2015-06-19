@@ -14,6 +14,11 @@ from nltk.tag.stanford import POSTagger
 import re
 from nltk.stem import SnowballStemmer
 from nltk.classify.util import accuracy
+import cherrypy
+from paste.translogger import TransLogger
+
+app = Flask(__name__)
+app.debug = True
 
 def save_classifier(classifier, modelPath):
     f = open(modelPath + '//classifier.pickle', 'wb')
@@ -90,19 +95,19 @@ def getCategorie():
 def posTagText():
     dependenciesPath = os.path.abspath("dependencies")
     if not request.json or not 'text' in request.json:
-        abort(400)     
+        abort(400)  
     return jsonify({'entities': stanfordTag(dependenciesPath+"/french.tagger",
                                             dependenciesPath+"/stanford-postagger.jar",
-                                            request.json['text'])}), 200
+                                            request.json['text'],encoding='utf8')}), 200
 
-def stanfordTag(modelPath,stanfordJarPath,text):
-    if not bool(re.search("java.exe", os.getenv("JAVA_HOME"))):
-        java_path=os.getenv("JAVA_HOME")+"\\bin\\java.exe"
+def stanfordTag(modelPath,stanfordJarPath,text,encoding):
+    if not bool(re.search("java", os.getenv("JAVA_HOME"))):
+        java_path=os.getenv("JAVA_HOME")+"bin/java"
         os.environ['JAVA_HOME'] = java_path
         nltk.internals.config_java(java_path)
     entities = []
     stemmer = SnowballStemmer("french")
-    st = POSTagger(modelPath,stanfordJarPath) 
+    st = POSTagger(modelPath,stanfordJarPath,encoding) 
     tags=st.tag(text.split())
     for tag in tags[0]:        
         entity = {
@@ -114,8 +119,26 @@ def stanfordTag(modelPath,stanfordJarPath,text):
     return entities
 
     
-if __name__ == '__main__':
-    """print( 'Argument List:', str(sys.argv))"""
-    app.debug = True 
-    app.run(host='192.168.0.16')
+
     
+def run_server():
+    # Enable WSGI access logging via Paste
+    app_logged = TransLogger(app)
+
+    # Mount the WSGI callable object (app) on the root directory
+    cherrypy.tree.graft(app_logged, '/')
+
+    # Set the configuration of the web server
+    cherrypy.config.update({
+        'engine.autoreload_on': True,
+        'log.screen': True,
+        'server.socket_port': 5000,
+        'server.socket_host': '0.0.0.0'
+    })
+
+    # Start the CherryPy WSGI web server
+    cherrypy.engine.start()
+    cherrypy.engine.block()
+
+if __name__ == "__main__":
+    run_server()
