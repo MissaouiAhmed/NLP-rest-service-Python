@@ -14,8 +14,7 @@ from nltk.tag.stanford import POSTagger
 import re
 from nltk.stem import SnowballStemmer
 from nltk.classify.util import accuracy
-import cherrypy
-from paste.translogger import TransLogger
+from nltk.tag.mapping import tagset_mapping
 
 app = Flask(__name__)
 app.debug = True
@@ -97,9 +96,9 @@ def posTagText():
                                             request.json['text'],encoding='utf8')}), 200
 
 def stanfordTag(modelPath,stanfordJarPath,text,encoding):
-    print(stanfordJarPath) 
-    if not bool(re.search("java", os.getenv("JAVA_HOME"))):
-        java_path=os.getenv("JAVA_HOME")+"bin/java"
+
+    if not bool(re.search("java.exe", os.getenv("JAVA_HOME"))):
+        java_path=os.getenv("JAVA_HOME")+"/bin/java.exe"
         os.environ['JAVA_HOME'] = java_path
         print(java_path)
         nltk.internals.config_java(java_path)
@@ -109,8 +108,7 @@ def stanfordTag(modelPath,stanfordJarPath,text,encoding):
     print(text.split())
     tags=st.tag(text.split())
     print(tags)
-    for tag in tags:
-        print(tag)        
+    for tag in tags[0]:           
         entity = {
         'token': tag[0],
         'pos': tag[1],
@@ -120,27 +118,11 @@ def stanfordTag(modelPath,stanfordJarPath,text,encoding):
     return entities
 
     
-def run_server():
-    # Enable WSGI access logging via Paste
-    app_logged = TransLogger(app)
 
-    # Mount the WSGI callable object (app) on the root directory
-    cherrypy.tree.graft(app_logged, '/')
-
-    # Set the configuration of the web server
-    cherrypy.config.update({
-        'engine.autoreload_on': True,
-        'log.screen': True,
-        'server.socket_port': 5000,
-        'server.socket_host': '0.0.0.0'
-    })
-
-    # Start the CherryPy WSGI web server
-    cherrypy.engine.start()
-    cherrypy.engine.block()
-
-if __name__ == "__main__":
-    run_server()
-
-
+    
+if __name__ == '__main__':
+    """print( 'Argument List:', str(sys.argv))"""
+    app.debug = True 
+    app.run(host='localhost')
+    
     
