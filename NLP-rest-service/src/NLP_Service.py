@@ -35,7 +35,7 @@ def load_classifier(modelPath):
 def construct_model(copusPath, modelPath):
     mr = CategorizedPlaintextCorpusReader(copusPath, r'(?!\.).*\.txt',
                                            cat_pattern=r'*/.*', encoding='iso-8859-1')
-    stop = stopwords.words('French')
+    stop = stopwords.words('french')
     documents = [([w for w in mr.words(i) if w.lower() not in stop and w.lower() not in string.punctuation],
                    i.split('/')[0]) for i in mr.fileids()]
     word_features = FreqDist(chain(*[i for i, j in documents]))
@@ -44,7 +44,6 @@ def construct_model(copusPath, modelPath):
     train_set = [({i:(i in tokens) for i in word_features}, tag) for tokens, tag in documents[:numtrain]]
     """test_set = [({i:(i in tokens) for i in word_features}, tag) for tokens, tag  in documents[numtrain:]]"""
     classifier = nbc.train(train_set)
-    
     mrtest = CategorizedPlaintextCorpusReader(os.path.abspath("corpus_test"), r'(?!\.).*\.txt', cat_pattern=r'*/.*', encoding='iso-8859-1')
     documentsTest = [([w for w in mrtest.words(i) if w.lower() not in stop and w.lower() 
                    not in string.punctuation],
@@ -53,8 +52,6 @@ def construct_model(copusPath, modelPath):
     word_features_test = list(word_features_test.keys())
     numtrain_test = int(len(documentsTest) * 100 / 100)
     test_set = [({i:(i in tokens) for i in word_features_test}, tag) for tokens, tag  in documentsTest[:numtrain_test]]
-    
-    print("Accuracy=" + accuracy(classifier, test_set))
     save_classifier(classifier, modelPath)
 
 
@@ -75,11 +72,9 @@ def classify(words, modelPath):
 app = Flask(__name__)
 
 @app.route('/NLP/api/v1.0/classfierModel', methods=['GET'])
-def trainModel():
-    corpusPath = os.path.abspath("corpus")
-    modelPath = os.path.abspath("model")    
-    construct_model(corpusPath, modelPath)
-    return send_from_directory(directory=modelPath, filename="classifier.pickle", as_attachment=True)
+def trainModel():  
+    construct_model(os.path.abspath("corpus"), os.path.abspath("model"))
+    return send_from_directory(directory=os.path.abspath("model"), filename="classifier.pickle", as_attachment=True)
 
 
 @app.route('/NLP/api/v1.0/categories', methods=['POST'])
@@ -96,20 +91,26 @@ def posTagText():
     dependenciesPath = os.path.abspath("dependencies")
     if not request.json or not 'text' in request.json:
         abort(400)  
+    print(request.json['text'])
     return jsonify({'entities': stanfordTag(dependenciesPath+"/french.tagger",
                                             dependenciesPath+"/stanford-postagger.jar",
                                             request.json['text'],encoding='utf8')}), 200
 
 def stanfordTag(modelPath,stanfordJarPath,text,encoding):
+    print(stanfordJarPath) 
     if not bool(re.search("java", os.getenv("JAVA_HOME"))):
         java_path=os.getenv("JAVA_HOME")+"bin/java"
         os.environ['JAVA_HOME'] = java_path
+        print(java_path)
         nltk.internals.config_java(java_path)
     entities = []
     stemmer = SnowballStemmer("french")
     st = POSTagger(modelPath,stanfordJarPath,encoding) 
+    print(text.split())
     tags=st.tag(text.split())
-    for tag in tags[0]:        
+    print(tags)
+    for tag in tags:
+        print(tag)        
         entity = {
         'token': tag[0],
         'pos': tag[1],
@@ -117,8 +118,6 @@ def stanfordTag(modelPath,stanfordJarPath,text,encoding):
         }
         entities.append(entity)
     return entities
-
-    
 
     
 def run_server():
@@ -142,3 +141,6 @@ def run_server():
 
 if __name__ == "__main__":
     run_server()
+
+
+    
